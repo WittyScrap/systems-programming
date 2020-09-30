@@ -16,18 +16,16 @@ bootloader.img: boot.bin
 	dd if=/dev/zero of=bootloader.img count=10000
 	dd if=boot.bin of=bootloader.img conv=notrunc
 
+# Note that both targets qemu and qemu-gdb require that an XServer is running
+# On the virtual machines used for this module, VcXsrv runs on startup of the VM
+
 qemu: bootloader.img 
 	qemu-system-i386 -serial mon:stdio $(QEMUOPTS)
 
-# try to generate a unique GDB port
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-# QEMU's gdb stub command line changed in 0.11
-QEMUGDB = $(shell if qemu-system-i386 -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
-
 qemu-gdb: bootloader.img 
-	qemu-system-i386 -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
+	@echo "*** Now run 'gdb'." 1>&2
+	qemu-system-i386 -serial mon:stdio $(QEMUOPTS) -S -s 
+	
 
 clean:
 	rm -f boot.bin
