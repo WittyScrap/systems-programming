@@ -4,6 +4,8 @@
 ; a 16-bit processor.  So our initial boot loader code is 16-bit code that will 
 ; eventually switch the processor into 32-bit mode.
 
+; ctyme.com/intr/int.htm
+
 BITS 16
 
 ; Tell the assembler that we will be loaded at 7C00 (That's where the BIOS loads boot loader code).
@@ -11,27 +13,10 @@ ORG 7C00h
 start:
 	jmp 	Real_Mode_Start				; Jump past our sub-routines
 
-	; Write to the console using BIOS.
-; 
-; Input: SI points to a null-terminated string
 
-Console_Write_16:
-	mov 	ah, 0Eh						; 0Eh is the INT 10h BIOS call to output the value contained in AL to screen
-
-Console_Write_16_Repeat:
-    mov		al, [si]					; Load the byte at the location contained in the SI register into AL
-	inc     si							; Add 1 to SI
-    test 	al, al						; If the byte is 0, we are done
-	je 		Console_Write_16_Done
-	int 	10h							; Output character contained in AL to screen
-	jmp 	Console_Write_16_Repeat		; and get the next byte
-
-Console_Write_16_Done:
-    ret
-
+%include "io.asm"
 
 ;	Start of the actual boot loader code
-	
 Real_Mode_Start:
 	cli									; Clear interrupts until the boot process is done
     xor 	ax, ax						; Set stack segment (SS) to 0 and set stack size to top of segment
@@ -42,11 +27,39 @@ Real_Mode_Start:
 	mov		es, ax						; with addresses in the first 64K of RAM					
 	
 	mov 	si, boot_message			; Display our greeting
-	call 	Console_Write_16
+	call 	Console_WriteLine
 
-	hlt									; Halt the processor					
+	; Now we need to read the next part of the boot process into memory
 
-boot_message:		db	'Boot Loader V1.0', 0
+	mov		ah, 2						; BIOS read sector function
+	mov		al, 7						; Read 7 sectors
+	mov		bx, 9000h					; Load into address ES:BX (0000:90000)
+	mov		ch, 0						; Use cylinder 0
+	mov		dh, 0						; Use head 0
+	mov		dl, [boot_device]			
+	mov		cl, 2						; Start reading at sector 2 (one after the boot sector)
+	int		13h
+	cmp		al, 7						; int 13h (ah:2) returns the number of sectors read in al. If this is not 7, fail.
+	jne		Read_Failed
+
+	mov 	dl, [boot_device]			; Pass boot device to second stage
+	jmp		9000h						; Jump to stage 2
+
+Read_Failed:
+	mov 	si, read_failed_msg
+	call	Console_WriteLine
+
+Quit:
+	mov		si, cannot_continue_msg
+	call	Console_WriteLine
+
+	hlt									; Halt the processor
+
+
+boot_device:			db	0
+boot_message:			db	'Boot Loader V1.1', 0
+read_failed_msg:		db	'Unable to read stage 2 of the boot process.', 0
+cannot_continue_msg:	db	'Cannot continue boot process.', 0
 
 ; Pad out the boot loader so that it will be exactly 512 bytes
 	times 510 - ($ - $$) db 0

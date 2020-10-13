@@ -10,11 +10,14 @@ QEMUOPTS = -drive file=bootloader.img,index=0,media=disk,format=raw -smp 1 -m 51
 %.bin: %.asm
 	nasm -w+all -f bin -o $@ $<
 	
-boot.bin: boot.asm 
+boot.bin: boot.asm io.asm
 
-bootloader.img: boot.bin 
+stage2.bin: stage2.asm a20.asm
+
+bootloader.img: boot.bin stage2.bin
 	dd if=/dev/zero of=bootloader.img count=10000
 	dd if=boot.bin of=bootloader.img conv=notrunc
+	dd if=stage2.bin of=bootloader.img seek=1 conv=notrunc
 
 # Note that both targets qemu and qemu-gdb require that an XServer is running
 # On the virtual machines used for this module, VcXsrv runs on startup of the VM
@@ -29,6 +32,7 @@ qemu-gdb: bootloader.img
 
 clean:
 	rm -f boot.bin
+	rm -f stage2.bin
 	rm -f bootloader.img
 	
 	
