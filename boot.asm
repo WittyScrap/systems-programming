@@ -26,6 +26,8 @@ Real_Mode_Start:
     mov 	ds, ax						; Set data segment registers (DS and ES) to 0. This means that we will only be dealing 
 	mov		es, ax						; with addresses in the first 64K of RAM					
 	
+	mov 	[boot_device], dl			; Sets boot_device to what the BIOS provides
+
 	mov 	si, boot_message			; Display our greeting
 	call 	Console_WriteLine
 
@@ -33,7 +35,7 @@ Real_Mode_Start:
 
 	mov		ah, 2						; BIOS read sector function
 	mov		al, 7						; Read 7 sectors
-	mov		bx, 9000h					; Load into address ES:BX (0000:90000)
+	mov		bx, 9000h					; Load into address ES:BX (0000:9000)
 	mov		ch, 0						; Use cylinder 0
 	mov		dh, 0						; Use head 0
 	mov		dl, [boot_device]			
