@@ -117,7 +117,7 @@ Enable_A20:
 	cmp		ax, 1
 	je	 	A20_Enabled
 	
-	Call	Enable_A20_Using_Kbd_Controller	; See if we can enable A20 using the keyboard controller`
+	call	Enable_A20_Using_Kbd_Controller	; See if we can enable A20 using the keyboard controller`
 	call 	Test_A20_Enabled		; Now see if A20 is enabled.  
 	mov		dx, 3
 	cmp		ax, 1

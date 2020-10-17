@@ -18,19 +18,25 @@ start:
 %include "io.asm"
 
 Stage2:
-    xor 	ax, ax						; Set stack segment (SS) to 0 and set stack size to top of segment
-    mov 	ss, ax
-    mov 	sp, 0FFFFh
-
-    mov 	ds, ax						; Set data segment registers (DS and ES) to 0. This means that we will only be dealing 
-	mov		es, ax						; with addresses in the first 64K of RAM
-
-    mov     si, hello_world
+    mov     si, msg_stage2              ; Print stage 2 message
     call    Console_WriteLine
 
-    hlt                                 ; Why even try
+    call    Enable_A20                  ; Try enabling A20 line
+    mov     si, dx                      ; Result will be in range 0 (fail) to 4 (1-4 are success values)
+    shl     si, 1                       ; Multiply return value by 2 to get an address offset
+    mov     si, [msg_list + si]         ; Move address of relevant message
+    
+    call    Console_WriteLine           ; Print relevant success/fail message
 
-hello_world:        db "hello, world", 0
+    test    dx, dx                      ; Check for successful activation
+    jz      A20_Fail                    ; Halt if failed
+
+    hlt                                 ; Stop anyway
+
+A20_Fail:
+    hlt                                 ; Could not enable A20 line, halt here
+
+%include "a20msg.asm"
 
 ; Pad out the boot loader stage 2 so that it will be exactly 3584 (7 * 512) bytes
 	times 3584 - ($ - $$) db 0
