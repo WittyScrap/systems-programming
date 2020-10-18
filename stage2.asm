@@ -21,22 +21,36 @@ Stage2:
     mov     si, msg_stage2              ; Print stage 2 message
     call    Console_WriteLine
 
-    call    Enable_A20                  ; Try enabling A20 line
-    mov     si, dx                      ; Result will be in range 0 (fail) to 4 (1-4 are success values)
-    shl     si, 1                       ; Multiply return value by 2 to get an address offset
-    mov     si, [msg_list + si]         ; Move address of relevant message
+    call    Enable_A20                  ; Try enabling A20 line, result will be in range 0 (fail) to 4 (1-4 are success values),
+    mov     si, dx                      ; we will need to multiply return value by 2 to get an address offset
+    shl     si, 1                       
+    mov     si, [msg_list + si]
     
     call    Console_WriteLine           ; Print relevant success/fail message
 
     test    dx, dx                      ; Check for successful activation
     jz      A20_Fail                    ; Halt if failed
 
-    hlt                                 ; Stop anyway
+    call    Console_Write_CRLF
+
+CLI:
+    mov     si, cursor
+    call    Console_Write_16            ; Write cursor...
+
+    mov     si, in_buff
+    call    Console_ReadLine            ; Read input
+
+    jmp CLI
+
+    hlt
 
 A20_Fail:
     hlt                                 ; Could not enable A20 line, halt here
 
 %include "a20msg.asm"
 
+in_buff:    times 0FFh db 0
+cursor:     db "> "
+
 ; Pad out the boot loader stage 2 so that it will be exactly 3584 (7 * 512) bytes
-	times 3584 - ($ - $$) db 0
+	        times 3584 - ($ - $$) db 0

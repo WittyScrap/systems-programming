@@ -39,3 +39,23 @@ Console_Write_CRLF:
 	mov		al, 0Ah
 	int		10h
 	ret
+
+; Reads a keyboard input value.
+; 
+; Input: SI points to an allocated input buffer
+; Output: Read string is stored in buffer pointed to by SI
+Console_ReadLine:
+	mov		ah, 0
+	int		16h
+	cmp		al, 0Dh						; Enter key pressed?
+	je		Console_ReadLine_Done
+
+	mov		[si], al					; Write character
+	add		si, 1
+	mov		ah, 0Eh
+	int		10h
+	jmp		Console_ReadLine
+
+Console_ReadLine_Done:
+	mov		byte[si], 0					; End of string marker
+	jmp		Console_Write_CRLF
