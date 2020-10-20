@@ -53,7 +53,7 @@ Input:
 
     ; vv Integer to Hexadecimal string vv
     mov     si, o_buff
-    mov     ax, 12ABh
+    mov     ax, 0AB12h
     call    To_String_Hex
 
     mov     si, o_buff
