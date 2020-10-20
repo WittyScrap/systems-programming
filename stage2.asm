@@ -16,6 +16,7 @@ start:
 
 %include "a20.asm"
 %include "io.asm"
+%include "string.asm"
 
 Stage2:
     mov     si, msg_stage2              ; Print stage 2 message
@@ -33,14 +34,34 @@ Stage2:
 
     call    Console_Write_CRLF
 
-CLI:
+Input:
     mov     si, cursor
-    call    Console_Write_16            ; Write cursor...
+    call    Console_Write_16
 
-    mov     si, in_buff
-    call    Console_ReadLine            ; Read input
+    mov     si, i_buff
+    call    Console_ReadLine
 
-    jmp CLI
+    ; Integer To String testing
+    ;
+    ; vv Integer to Decimal string vv
+    mov     si, o_buff
+    mov     ax, 12345
+    call    To_String_Dec
+
+    mov     si, o_buff
+    call    Console_WriteLine
+
+    ; vv Integer to Hexadecimal string vv
+    mov     si, o_buff
+    mov     ax, 12ABh
+    call    To_String_Hex
+
+    mov     si, o_buff
+    call    Console_WriteLine
+    ;
+    ; End of Integer to String testing
+
+    jmp Input
 
     hlt
 
@@ -49,7 +70,8 @@ A20_Fail:
 
 %include "a20msg.asm"
 
-in_buff:    times 0FFh db 0
+i_buff:     times 7Fh db 0
+o_buff:     times 7Fh db 0
 cursor:     db "> "
 
 ; Pad out the boot loader stage 2 so that it will be exactly 3584 (7 * 512) bytes
