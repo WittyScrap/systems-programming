@@ -26,9 +26,27 @@ To_String_Dec_Write:
     ret
 
 
+; Converts a number to a 4-digit base-16 string representation and prints it.
+;
+; INPUT: BX contains the 16-bit input number to be converted.
+Print_String_Hex:
+    mov     cx, 4
+    mov     ah, 0Eh
+
+Print_String_Hex_Next:
+    mov     si, 0Fh
+    rol     bx, 4
+    and     si, bx
+    mov     al, [HEX_ASCII + si]
+    int     10h
+    loop    Print_String_Hex_Next
+
+    ret
+
+
 ; Converts a number to a 4-digit base-16 string representation.
 ;
-; INPUT: SI points to an output buffer.
+; INPUT: SI points to an allocated output buffer.
 ;        AX contains the 16-bit input number to be converted.
 ; OUTPUT: Final string will be stored in the buffer pointed to by SI.
 To_String_Hex:
@@ -38,7 +56,7 @@ To_String_Hex_Next:
     mov     di, 0Fh
     rol     ax, 4
     and     di, ax
-    mov     cl, [HEX_ASCII + di]
+    mov     al, [HEX_ASCII + di]
     mov     [si + bx + 4], cl
     add     bx, 1
     jnz     To_String_Hex_Next
@@ -47,5 +65,5 @@ To_String_Hex_Next:
     ret
 
 
-; Data
+; Hex chars LUT
 HEX_ASCII:      db "0123456789ABCDEF"

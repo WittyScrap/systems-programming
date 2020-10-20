@@ -52,12 +52,9 @@ Input:
     call    Console_WriteLine
 
     ; vv Integer to Hexadecimal string vv
-    mov     si, o_buff
-    mov     ax, 0AB12h
+    mov     bx, 0AB12h
     call    To_String_Hex
-
-    mov     si, o_buff
-    call    Console_WriteLine
+    call    Console_Write_CRLF
     ;
     ; End of Integer to String testing
 
