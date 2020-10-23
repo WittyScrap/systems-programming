@@ -53,7 +53,7 @@ Input:
 
     ; vv Integer to Hexadecimal string vv
     mov     bx, 0AB12h
-    call    To_String_Hex
+    call    Console_WriteHex
     call    Console_Write_CRLF
     ;
     ; End of Integer to String testing
